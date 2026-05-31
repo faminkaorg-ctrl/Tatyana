@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Высшая Реализация Души | Трансформация</title>
+    <!-- Подключаем шрифты -->
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #d4af37;
+            --dark: #050a08;
+            --glass: rgba(15, 25, 20, 0.4);
+            --glass-border: rgba(212, 175, 55, 0.2);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--dark);
+            color: #fff;
+            font-family: 'Montserrat', sans-serif;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* Контейнер для частиц на фоне */
+        #particles-js {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            background: radial-gradient(circle at center, #0a1410 0%, #000000 100%);
+        }
+
+        h1, h2, h3, h4 { font-family: 'Cormorant Garamond', serif; font-weight: 600; }
+        
+        .highlight { color: var(--gold); text-shadow: 0 0 15px rgba(212, 175, 55, 0.5); }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 0 20px; }
+
+        /* Glassmorphism Карточки */
+        .glass-card {
+            background: var(--glass);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .glass-card::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 60%);
+            opacity: 0;
+            transition: opacity 0.5s;
+            pointer-events: none;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.2);
+            border-color: rgba(212, 175, 55, 0.5);
+        }
+
+        .glass-card:hover::before { opacity: 1; }
+
+        /* Кнопки */
+        .btn-glow {
+            position: relative;
+            display: inline-block;
+            padding: 18px 45px;
+            color: #000;
+            background: linear-gradient(135deg, #d4af37, #f3e5ab);
+            font-weight: 600;
+            font-size: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            overflow: hidden;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .btn-glow::after {
+            content: '';
+            position: absolute;
+            bottom: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.8) 0%, transparent 60%);
+            opacity: 0;
+            z-index: -1;
+            transition: opacity 0.3s;
+            transform: scale(0.5);
+        }
+
+        .btn-glow:hover {
+            box-shadow: 0 0 30px rgba(212, 175, 55, 0.6);
+            transform: scale(1.05);
+        }
+
+        .btn-glow:hover::after { opacity: 1; transform: scale(1); }
+
+        /* Hero */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 100px 0 60px;
+            position: relative;
+        }
+
+        .hero h1 {
+            font-size: 5rem;
+            line-height: 1.1;
+            margin-bottom: 20px;
+            background: -webkit-linear-gradient(#fff, #d4af37);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            opacity: 0;
+            transform: translateY(50px);
+        }
+
+        /* Секции */
+        .section { padding: 120px 0; }
+        
+        .section-title {
+            text-align: center;
+            font-size: 3.5rem;
+            margin-bottom: 60px;
+            color: var(--gold);
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+        }
+
+        /* Модальные окна */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.4s ease;
+        }
+
+        .modal.active { opacity: 1; visibility: visible; }
+
+        .modal-body {
+            background: var(--dark);
+            border: 1px solid var(--gold);
+            width: 90%; max-width: 900px;
+            max-height: 85vh; overflow-y: auto;
+            border-radius: 20px;
+            padding: 50px;
+            transform: scale(0.9);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            position: relative;
+        }
+
+        .modal.active .modal-body { transform: scale(1); }
+
+        .close-btn {
+            position: absolute; top: 20px; right: 30px;
+            font-size: 2.5rem; color: #fff; cursor: pointer;
+            transition: color 0.3s;
+            z-index: 100;
+        }
+        .close-btn:hover { color: var(--gold); }
+
+        /* Формы */
+        input, select {
+            width: 100%;
+            padding: 18px;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 12px;
+            color: #fff;
+            font-size: 1rem;
+            margin-bottom: 20px;
+            font-family: 'Montserrat', sans-serif;
+            transition: border-color 0.3s, background 0.3s;
+            outline: none;
+        }
+        input:focus, select:focus {
+            border-color: var(--gold); background: rgba(255,255,255,0.1);
+        }
+
+        /* Профиль Татьяны в Hero */
+        .hero-profile {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            gap: 50px;
+            align-items: start;
+            margin-top: 40px;
+            opacity: 0;
+            transform: translateY(30px);
+        }
+        .hero-profile-img-wrapper {
+            position: relative;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 2px solid var(--gold);
+            box-shadow: 0 10px 40px rgba(212, 175, 55, 0.3);
+        }
+        .hero-profile-img {
+            width: 100%;
+            display: block;
+            object-fit: cover;
+        }
+        .levels-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 40px;
+        }
+
+        /* --- КАРУСЕЛЬ ОТЗЫВОВ --- */
+        .reviews-slider {
+            display: flex;
+            overflow-x: auto;
+            scroll-snap-type: x mandatory;
+            gap: 20px;
+            padding-bottom: 20px;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .reviews-slider::-webkit-scrollbar { display: none; }
+
+        .review-card {
+            min-width: calc(33.333% - 14px);
+            scroll-snap-align: start;
+            background: var(--glass);
+            border-radius: 20px;
+            padding: 30px;
+            border: 1px solid var(--glass-border);
+            display: flex;
+            flex-direction: column;
+        }
+        .review-header { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
+        .review-avatar { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+        .fake-player { background: rgba(0,0,0,0.5); border-radius: 50px; padding: 10px; display: flex; align-items: center; gap: 15px; margin: 20px 0; border: 1px solid rgba(255,255,255,0.1); }
+        .play-btn { width: 40px; height: 40px; background: var(--gold); border-radius: 50%; display: flex; justify-content: center; align-items: center; color: #000; cursor: pointer; }
+        
+        .transcript {
+            margin-top: 15px;
+            padding: 15px;
+            background: rgba(0,0,0,0.4);
+            border-radius: 10px;
+            border-left: 3px solid var(--gold);
+            font-size: 0.95rem;
+            color: #ccc;
+            font-style: italic;
+        }
+
+        /* --- КРАСИВЫЕ МОДАЛКИ (ИКОНКИ И ВИДЕО) --- */
+        .modal-video-wrapper {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* 16:9 */
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            border: 1px solid var(--gold);
+            background: #000;
+        }
+        .modal-video-wrapper img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+        }
+        .modal-features-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .feature-item {
+            background: rgba(255,255,255,0.03);
+            padding: 20px;
+            border-radius: 15px;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: flex-start;
+            gap: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        .modal.active .feature-item { animation: fadeInUp 0.5s ease forwards; }
+        .modal.active .feature-item:nth-child(1) { animation-delay: 0.2s; }
+        .modal.active .feature-item:nth-child(2) { animation-delay: 0.3s; }
+        .modal.active .feature-item:nth-child(3) { animation-delay: 0.4s; }
+        .modal.active .feature-item:nth-child(4) { animation-delay: 0.5s; }
+
+        .feature-icon {
+            width: 40px; height: 40px;
+            flex-shrink: 0;
+            background: rgba(212, 175, 55, 0.1);
+            border-radius: 50%;
+            display: flex; justify-content: center; align-items: center;
+            color: var(--gold);
+            font-size: 1.2rem;
+        }
+
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* --- ВИЗУАЛЬНЫЙ ВЫБОР ГОРОДА --- */
+        .city-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+        .city-card {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            cursor: pointer;
+            border: 2px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
+            height: 100px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            padding: 12px;
+            background: #000;
+        }
+        .city-card img {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            object-fit: cover;
+            opacity: 0.4;
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+        .city-card:hover img { opacity: 0.6; }
+        .city-card.selected {
+            border-color: var(--gold);
+            box-shadow: 0 0 15px rgba(212, 175, 55, 0.4);
+        }
+        .city-card.selected img { opacity: 0.2; }
+        .city-card-content { position: relative; z-index: 1; pointer-events: none; }
+        .city-name { font-weight: 600; font-size: 1rem; color: #fff; line-height: 1.2; }
+        .city-date { font-size: 0.75rem; color: var(--gold); margin-top: 4px; }
+        .city-check {
+            position: absolute; top: 8px; right: 8px;
+            width: 22px; height: 22px;
+            background: var(--gold);
+            border-radius: 50%;
+            display: none;
+            align-items: center; justify-content: center;
+            color: #000; font-size: 12px; font-weight: bold;
+            z-index: 2;
+        }
+        .city-card.selected .city-check { display: flex; animation: scaleIn 0.3s ease; }
+
+        @keyframes scaleIn { from { transform: scale(0); } to { transform: scale(1); } }
+
+        /* --- АНИМАЦИЯ УСПЕХА И ЗАГРУЗКИ --- */
+        .success-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(5, 10, 8, 0.95);
+            backdrop-filter: blur(10px);
+            display: none; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 20; border-radius: 20px; text-align: center; padding: 30px;
+        }
+        .success-overlay.active { display: flex; animation: fadeIn 0.5s ease; }
+        .success-icon { font-size: 4rem; margin-bottom: 20px; color: var(--gold); }
+
+        .loader {
+            width: 20px; height: 20px;
+            border: 3px solid rgba(0,0,0,0.3); border-top-color: #000;
+            border-radius: 50%; display: inline-block;
+            animation: spin 1s linear infinite;
+            display: none;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* Куки Баннер */
+        .cookie-banner {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(10, 15, 12, 0.95);
+            backdrop-filter: blur(10px);
+            border: 1px solid var(--gold);
+            padding: 15px 30px;
+            border-radius: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            width: 90%;
+            max-width: 700px;
+            z-index: 9999;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+        }
+        .cookie-banner p { margin: 0; color: #ccc; font-size: 0.9rem; }
+        .cookie-banner button { flex-shrink: 0; }
+
+        /* Адаптив */
+        @media (max-width: 900px) {
+            .hero-profile { grid-template-columns: 1fr; text-align: center; }
+            .hero-bio { text-align: left; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .review-card { min-width: calc(50% - 10px); }
+            .modal-features-grid { grid-template-columns: 1fr; }
+            .cookie-banner { flex-direction: column; border-radius: 20px; text-align: center; }
+        }
+        @media (max-width: 600px) {
+            .hero h1 { font-size: 3rem; }
+            .review-card { min-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Фоновые частицы -->
+    <div id="particles-js"></div>
+
+    <!-- Главный экран -->
+    <section class="hero">
+        <div class="container">
+            <h1 class="gsap-hero" style="text-align: center; margin-bottom: 10px;">Выход из Матрицы Страданий</h1>
+            <p class="gsap-hero" style="text-align: center; font-size: 1.3rem; color: #ccc; max-width: 800px; margin: 0 auto 20px;">Сакральная природная терапия. Быстрый выход из иллюзий личности и забвения души.</p>
+
+            <div class="hero-profile gsap-hero">
+                <div class="hero-profile-img-wrapper">
+                    <img src="https://images.unsplash.com/photo-1600618528240-fb9fc964b853?ixlib=rb-1.2.1&auto=format&fit=crop&w=1600&q=80" alt="Татьяна Волкова" class="hero-profile-img">
+                    <div style="position: absolute; bottom: 20px; left: 20px; z-index: 2;">
+                        <span style="background: var(--gold); color: #000; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-size: 0.9rem;">Татьяна Волкова (Estestvo)</span>
+                    </div>
+                </div>
+                
+                <div class="hero-bio">
+                    <h2 style="font-size: 2.5rem; color: var(--gold); margin-bottom: 20px;">Приветствую тебя, великая душа! ✨</h2>
+                    <p style="font-size: 1.1rem; line-height: 1.7; margin-bottom: 22px; color: #eee;">Я — <strong>Татьяна Волкова</strong>, сакральный психотерапевт и проводник природных целительных практик.</p>
+
+                    <div style="background: rgba(212, 175, 55, 0.08); border-left: 4px solid var(--gold); border-radius: 12px; padding: 22px 24px; margin-bottom: 30px;">
+                        <p style="color: #fff; font-size: 1.05rem; margin: 0; line-height: 1.75;"><strong>Моя миссия:</strong> бережно провести человека к пробуждению. Помочь выйти за пределы страданий через осознание себя Божественным существом. Мы пришли на Землю только для одного — вспомнить себя в Боге.</p>
+                    </div>
+
+                    <p style="font-size: 1.05rem; line-height: 1.7; margin-bottom: 25px; color: #ccc;">За моими плечами <strong>более 20 лет</strong> личного опыта трансформации. Сегодня я использую выжимку самых сильных инструментов, работая на трех уровнях:</p>
+
+                    <div class="levels-grid" style="margin-bottom: 35px;">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 24px;">
+                            <h4 style="color: var(--gold); margin-bottom: 15px;">🧠 Сознание и Подсознание</h4>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #ccc; line-height: 1.8;">
+                                <li style="margin-bottom: 12px;"><span style="color: var(--gold); margin-right: 10px;">⚡</span><strong>Гипнотерапия:</strong> стирание первопричин психотравм и психосоматики.</li>
+                                <li style="margin-bottom: 12px;"><span style="color: var(--gold); margin-right: 10px;">⚡</span><strong>ТЭС (EFT):</strong> глубокое телесно-эмоциональное освобождение.</li>
+                                <li><span style="color: var(--gold); margin-right: 10px;">⚡</span><strong>Нейро-программирование:</strong> работа с нересурсными состояниями и зависимостями.</li>
+                            </ul>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 24px;">
+                            <h4 style="color: var(--gold); margin-bottom: 15px;">🌿 Природная Медицина и Дух</h4>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #ccc; line-height: 1.8;">
+                                <li style="margin-bottom: 12px;"><span style="color: var(--gold); margin-right: 10px;">⚡</span><strong>Проводник церемоний:</strong> Камбо, Рапэ, Сананга, Точка Сборки.</li>
+                                <li style="margin-bottom: 12px;"><span style="color: var(--gold); margin-right: 10px;">⚡</span><strong>Мухоморные коррекции:</strong> путешествия в глубины бессознательного.</li>
+                                <li><span style="color: var(--gold); margin-right: 10px;">⚡</span><strong>Энергетическая работа:</strong> стихии, пространство, растения-учителя.</li>
+                            </ul>
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); border-radius: 18px; padding: 24px;">
+                            <h4 style="color: var(--gold); margin-bottom: 15px;">👐 Телесная Терапия</h4>
+                            <ul style="list-style: none; padding: 0; margin: 0; color: #ccc; line-height: 1.8;">
+                                <li style="margin-bottom: 12px;"><span style="color: var(--gold); margin-right: 10px;">⚡</span><strong>Шаманская баня:</strong> тотальное очищение и древняя ладка (воск, огонь, рушник).</li>
+                                <li><span style="color: var(--gold); margin-right: 10px;">⚡</span><strong>Глубинная работа:</strong> снятие жесточайших зажимов в фасциях, выглаживание жил.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="background: rgba(212,175,55,0.05); border: 1px solid rgba(212,175,55,0.2); border-radius: 18px; padding: 28px; margin-bottom: 30px;">
+                        <p style="margin: 0 0 14px 0; color: #fff; font-size: 1rem; line-height: 1.7;"><strong style="color: var(--gold);">🔥 Флагман:</strong> Однодневный Ретрит Аналог Аяваски (9 часов непрерывной глубокой трансформации).</p>
+                        <p style="margin: 0 0 8px 0; color: #ccc; font-size: 1rem; line-height: 1.7;"><strong style="color: var(--gold);">📍 Основная резиденция:</strong> Сочи / Красная Поляна.</p>
+                        <p style="margin: 0; color: #ccc; font-size: 1rem; line-height: 1.7;"><strong style="color: var(--gold);">✈️ Выездные практики:</strong> СПб, Москва, Казань, Краснодар, Кисловодск, Ставрополь, Ростов, Крым.</p>
+                    </div>
+
+                    <div style="text-align: center; padding: 35px; border: 1px solid var(--gold); border-radius: 15px; background: rgba(212,175,55,0.05); box-shadow: 0 0 30px rgba(212,175,55,0.1);">
+                        <h3 style="color: #fff; font-size: 1.6rem; margin-bottom: 15px;">Быстрый выход из матрицы страданий возможен!</h3>
+                        <p style="color: #ccc; font-size: 1.05rem; margin-bottom: 20px;">Безоплатная индивидуальная консультация по вопросам практик:</p>
+                        <p style="color: var(--gold); font-size: 1.4rem; margin-bottom: 10px; font-weight: 700;">8 (962) 683-80-81</p>
+                        <p style="color: #888; font-size: 0.9rem; margin-bottom: 18px;">(WhatsApp, Telegram, MAX)</p>
+                        <button class="btn-glow" onclick="document.getElementById('formats').scrollIntoView({behavior: 'smooth'})">ЗАПИСАТЬСЯ НА ПРАКТИКУ</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Выбор формата -->
+    <section id="formats" class="section">
+        <div class="container">
+            <h2 class="section-title gsap-fade">Путь к Трансформации</h2>
+            <div class="grid-2">
+                
+                <!-- Офлайн Карточка -->
+                <div class="glass-card gsap-slide-left">
+                    <h3 style="font-size: 2rem; margin-bottom: 10px;">Офлайн Ретрит</h3>
+                    <p class="highlight" style="font-size: 1.2rem; margin-bottom: 20px;">1 день. 11 часов. Полный цикл.</p>
+                    <p style="margin-bottom: 30px; color: #aaa;">Мистерия сонастройки со стихиями, церемонии Камбо и Рапэ, гипокситерапия и вход в состояние Самадхи. Москва, СПб, Краснодар, Ростов, Сочи.</p>
+                    <div style="font-size: 2.5rem; color: #fff; margin-bottom: 30px;">35 000 ₽</div>
+                    <button class="btn-glow" style="width: 100%; background: transparent; border: 1px solid var(--gold); color: var(--gold);" onclick="openModal('modal-offline')">Развернуть программу</button>
+                </div>
+
+                <!-- Онлайн Карточка -->
+                <div class="glass-card gsap-slide-right">
+                    <h3 style="font-size: 2rem; margin-bottom: 10px;">Онлайн Сессии</h3>
+                    <p class="highlight" style="font-size: 1.2rem; margin-bottom: 20px;">Глубинная проработка из дома.</p>
+                    <p style="margin-bottom: 30px; color: #aaa;">Освобождение от кармического и родового груза. 5 последовательных сессий для выхода из круга Сансары и обретения блаженства бытия.</p>
+                    <div style="font-size: 2.5rem; color: #fff; margin-bottom: 30px;">от 5 000 ₽</div>
+                    <button class="btn-glow" style="width: 100%; background: transparent; border: 1px solid var(--gold); color: var(--gold);" onclick="openModal('modal-online')">Узнать детали</button>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <section id="reviews" class="section">
+        <div class="container">
+            <h2 class="section-title gsap-fade">Истории Трансформации</h2>
+            <p style="text-align: center; color: #aaa; margin-top: -40px; margin-bottom: 40px; font-size: 0.9rem;">Свайпайте вправо, чтобы послушать все истории 👉</p>
+            
+            <div class="reviews-slider gsap-fade">
+                <!-- Отзыв 1 -->
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80" alt="Елена" class="review-avatar">
+                        <div>
+                            <h3 style="color: var(--gold); margin-bottom: 5px;">Елена, 32 года</h3>
+                            <p style="color: #aaa; font-size: 0.8rem;">Офлайн ретрит в Москве</p>
+                        </div>
+                    </div>
+                    <div class="fake-player">
+                        <div class="play-btn">▶</div>
+                        <div class="waveform"></div>
+                        <span style="font-size: 0.8rem; color: #888;">02:14</span>
+                    </div>
+                    <div class="transcript">
+                        <strong>Транскрипция:</strong> «Три года в абьюзе, панические атаки... На церемонии меня буквально вывернуло наизнанку — я физически почувствовала, как эта черная тяжесть выходит. Сейчас я абсолютно свободный человек. Это телепорт в другую реальность».
+                    </div>
+                </div>
+
+                <!-- Отзыв 2 -->
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=200&q=80" alt="Михаил" class="review-avatar">
+                        <div>
+                            <h3 style="color: var(--gold); margin-bottom: 5px;">Михаил, 41 год</h3>
+                            <p style="color: #aaa; font-size: 0.8rem;">Онлайн комплекс</p>
+                        </div>
+                    </div>
+                    <div class="fake-player">
+                        <div class="play-btn">▶</div>
+                        <div class="waveform"></div>
+                        <span style="font-size: 0.8rem; color: #888;">01:45</span>
+                    </div>
+                    <div class="transcript">
+                        <strong>Транскрипция:</strong> «Выгорание было такое, что не мог встать с кровати. На сессиях нашли корень — родовой сценарий. После третьей сессии открылось второе дыхание. Вернулась ясность ума и бешеная энергия».
+                    </div>
+                </div>
+
+                <!-- Отзыв 3 -->
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=200&q=80" alt="Анна" class="review-avatar">
+                        <div>
+                            <h3 style="color: var(--gold); margin-bottom: 5px;">Анна, 28 лет</h3>
+                            <p style="color: #aaa; font-size: 0.8rem;">Офлайн ретрит в СПб</p>
+                        </div>
+                    </div>
+                    <div class="fake-player">
+                        <div class="play-btn">▶</div>
+                        <div class="waveform"></div>
+                        <span style="font-size: 0.8rem; color: #888;">03:10</span>
+                    </div>
+                    <div class="transcript">
+                        <strong>Транскрипция:</strong> «Я всегда жила умом, все контролировала. Випассана и шаманское дыхание просто отключили мою "бетономешалку" в голове. Я впервые в жизни ощутила тотальную тишину и связь со Вселенной».
+                    </div>
+                </div>
+
+                <!-- Отзыв 4 -->
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80" alt="Сергей" class="review-avatar">
+                        <div>
+                            <h3 style="color: var(--gold); margin-bottom: 5px;">Сергей, 35 лет</h3>
+                            <p style="color: #aaa; font-size: 0.8rem;">Онлайн (1 сессия)</p>
+                        </div>
+                    </div>
+                    <div class="fake-player">
+                        <div class="play-btn">▶</div>
+                        <div class="waveform"></div>
+                        <span style="font-size: 0.8rem; color: #888;">01:12</span>
+                    </div>
+                    <div class="transcript">
+                        <strong>Транскрипция:</strong> «Был скептиком. Взял одну онлайн сессию ради интереса. Татьяна так точно попала в мои теневые аспекты, что у меня мурашки пошли. Буду брать полный пакет, это реально работает».
+                    </div>
+                </div>
+
+                <!-- Отзыв 5 -->
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://images.unsplash.com/photo-1438761681033-6461ffad8d80?auto=format&fit=crop&w=200&q=80" alt="Ольга" class="review-avatar">
+                        <div>
+                            <h3 style="color: var(--gold); margin-bottom: 5px;">Ольга, 45 лет</h3>
+                            <p style="color: #aaa; font-size: 0.8rem;">Офлайн ретрит Сочи</p>
+                        </div>
+                    </div>
+                    <div class="fake-player">
+                        <div class="play-btn">▶</div>
+                        <div class="waveform"></div>
+                        <span style="font-size: 0.8rem; color: #888;">04:05</span>
+                    </div>
+                    <div class="transcript">
+                        <strong>Транскрипция:</strong> «Процесс работы с фасциями — это нечто. Боль ушла вместе со слезами. Камбо очистило не только тело, но и душу. Я заново родилась на этом ретрите. Спасибо Проводнику!».
+                    </div>
+                </div>
+
+                <!-- Отзыв 6 -->
+                <div class="review-card">
+                    <div class="review-header">
+                        <img src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80" alt="Игорь" class="review-avatar">
+                        <div>
+                            <h3 style="color: var(--gold); margin-bottom: 5px;">Игорь, 39 лет</h3>
+                            <p style="color: #aaa; font-size: 0.8rem;">Онлайн комплекс</p>
+                        </div>
+                    </div>
+                    <div class="fake-player">
+                        <div class="play-btn">▶</div>
+                        <div class="waveform"></div>
+                        <span style="font-size: 0.8rem; color: #888;">02:30</span>
+                    </div>
+                    <div class="transcript">
+                        <strong>Транскрипция:</strong> «Ушел страх за будущее. До сессий постоянно жил в тревоге из-за бизнеса. Сейчас появилось глубокое доверие к миру. Деньги стали приходить легче, потому что я перестал вибрировать из нужды».
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Модалки (Скрытый контент) -->
+    <!-- ОФЛАЙН МОДАЛКА -->
+    <div class="modal" id="modal-offline">
+        <div class="modal-body">
+            
+            <div class="success-overlay" id="success-off">
+                <div class="success-icon">✨</div>
+                <h3 style="color: #fff; margin-bottom: 10px;">Ваш запрос доставлен!</h3>
+                <p style="color: #ccc; margin-bottom: 20px;">Поздравляем с первым шагом к Высшей Реализации. Вскоре с вами свяжется наш менеджер для подтверждения деталей.</p>
+                <button class="btn-glow" onclick="closeModal('modal-offline')" style="padding: 10px 20px; font-size: 0.9rem;">Закрыть</button>
+            </div>
+            
+            <div id="form-content-off">
+                <span class="close-btn" onclick="closeModal('modal-offline')">&times;</span>
+                <h2 class="highlight" style="font-size: 2.5rem; margin-bottom: 10px;">Офлайн Ретрит</h2>
+                <p style="font-size: 1.1rem; color: #ccc; margin-bottom: 20px;">1 день. 11 часов. Процесс, который заменяет годы терапии. Мы будем работать напрямую с вашим телом и подсознанием через природные инструменты.</p>
+                
+                <div class="modal-video-wrapper">
+                    <img src="https://images.unsplash.com/photo-1545389336-cf090694435e?auto=format&fit=crop&w=1200&q=80" alt="Атмосфера">
+                    <div class="play-btn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; font-size: 24px; box-shadow: 0 0 30px rgba(212,175,55,0.8);">▶</div>
+                </div>
+
+                <h3 style="margin-bottom: 20px; color: #fff;">Что конкретно мы будем делать:</h3>
+                
+                <div class="modal-features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🌿</div>
+                        <div>
+                            <h4 style="color: var(--gold); margin-bottom: 5px;">Разблокировка фасций</h4>
+                            <p style="font-size: 0.9rem; color: #aaa;">Мы физически вытащим из вашего тела застрявшие обиды, страхи и непрожитые эмоции.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">💧</div>
+                        <div>
+                            <h4 style="color: var(--gold); margin-bottom: 5px;">Церемонии Камбо и Рапэ</h4>
+                            <p style="font-size: 0.9rem; color: #aaa;">Глубочайшее очищение на клеточном уровне. Медицина Амазонии сбросит с вас токсичный панцирь.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌬️</div>
+                        <div>
+                            <h4 style="color: var(--gold); margin-bottom: 5px;">Гипокситерапия</h4>
+                            <p style="font-size: 0.9rem; color: #aaa;">Отключение внутреннего критика и выход в измененное состояние сознания, где кроются все ответы.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">✨</div>
+                        <div>
+                            <h4 style="color: var(--gold); margin-bottom: 5px;">Мини-випассана</h4>
+                            <p style="font-size: 0.9rem; color: #aaa;">Вход в тотальную тишину через этноботанику. Вы наконец-то услышите истинный голос своей Души.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 20px; color: #fff;">Выберите город и дату:</h3>
+                
+                <div class="city-grid">
+                    <div class="city-card" onclick="selectCity(this, 'Москва')">
+                        <img src="https://images.unsplash.com/photo-1513326738677-b964603b136d?w=300&q=80" alt="Москва">
+                        <div class="city-check">✓</div>
+                        <div class="city-card-content">
+                            <div class="city-name">Москва</div>
+                            <div class="city-date">4 - 5 июня</div>
+                        </div>
+                    </div>
+
+                    <div class="city-card" onclick="selectCity(this, 'СПб')">
+                        <img src="https://images.unsplash.com/photo-1555448248-2571daf6344b?w=300&q=80" alt="СПб">
+                        <div class="city-check">✓</div>
+                        <div class="city-card-content">
+                            <div class="city-name">С-Петербург</div>
+                            <div class="city-date">6 - 7 июня</div>
+                        </div>
+                    </div>
+
+                    <div class="city-card" onclick="selectCity(this, 'Краснодар')">
+                        <img src="https://images.unsplash.com/photo-1584464491033-06628f3a6b7b?w=300&q=80" alt="Краснодар">
+                        <div class="city-check">✓</div>
+                        <div class="city-card-content">
+                            <div class="city-name">Краснодар</div>
+                            <div class="city-date">13 июня</div>
+                        </div>
+                    </div>
+
+                    <div class="city-card" onclick="selectCity(this, 'Ростов')">
+                        <img src="https://images.unsplash.com/photo-1513635269975-59663e0ac1ad?w=300&q=80" alt="Ростов">
+                        <div class="city-check">✓</div>
+                        <div class="city-card-content">
+                            <div class="city-name">Ростов</div>
+                            <div class="city-date">14 июня</div>
+                        </div>
+                    </div>
+
+                    <div class="city-card" onclick="selectCity(this, 'Сочи')">
+                        <img src="https://images.unsplash.com/photo-1540206351-d730a1197e0e?w=300&q=80" alt="Сочи">
+                        <div class="city-check">✓</div>
+                        <div class="city-card-content">
+                            <div class="city-name">Сочи / К.Поляна</div>
+                            <div class="city-date">Постоянно</div>
+                        </div>
+                    </div>
+                </div>
+
+                <form id="form-off" onsubmit="submitPremiumLead(event, 'Офлайн')" style="margin-top: 25px;">
+                    <input type="text" placeholder="Ваше имя" required>
+                    <input type="tel" placeholder="Телефон / Telegram" required>
+                    <input type="hidden" id="selected_city_input" value="">
+                    <button type="submit" class="btn-glow" style="width: 100%;">
+                        <span class="btn-text">ЗАНЯТЬ МЕСТО</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ОНЛАЙН МОДАЛКА -->
+    <div class="modal" id="modal-online">
+        <div class="modal-body">
+            
+            <div class="success-overlay" id="success-on">
+                <div class="success-icon">✨</div>
+                <h3 style="color: #fff; margin-bottom: 10px;">Ваш запрос доставлен!</h3>
+                <p style="color: #ccc; margin-bottom: 20px;">Менеджер скоро свяжется с вами для согласования времени сессии.</p>
+                <button class="btn-glow" onclick="closeModal('modal-online')" style="padding: 10px 20px; font-size: 0.9rem;">Закрыть</button>
+            </div>
+
+            <div id="form-content-on">
+                <span class="close-btn" onclick="closeModal('modal-online')">&times;</span>
+                <h2 class="highlight" style="font-size: 2.5rem; margin-bottom: 10px;">Онлайн Трансформация</h2>
+                <p style="font-size: 1.1rem; color: #ccc; margin-bottom: 20px;">Пакет из 5 глубоких сессий. Выход из круга страданий и смещение фокуса с материального на духовное.</p>
+                
+                <div class="modal-video-wrapper">
+                    <img src="https://images.unsplash.com/photo-1447452001602-7090c7ab2db3?auto=format&fit=crop&w=1200&q=80" alt="Онлайн сессия">
+                    <div class="play-btn" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 60px; height: 60px; font-size: 24px; box-shadow: 0 0 30px rgba(212,175,55,0.8);">▶</div>
+                </div>
+
+                <h3 style="margin-bottom: 20px; color: #fff;">Что мы проработаем:</h3>
+                
+                <div class="modal-features-grid">
+                    <div class="feature-item">
+                        <div class="feature-icon">🧠</div>
+                        <div>
+                            <h4 style="color: var(--gold); margin-bottom: 5px;">Токсичные реакции</h4>
+                            <p style="font-size: 0.9rem; color: #aaa;">Уберем мысли и подавленные эмоции, которые забирают вашу энергию каждый день.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">👁️</div>
+                        <div>
+                            <h4 style="color: var(--gold); margin-bottom: 5px;">Теневые аспекты</h4>
+                            <p style="font-size: 0.9rem; color: #aaa;">Раскроем слепые зоны психики и превратим подавленную энергию в вашу главную силу.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">⚡</div>
+                        <div>
+                            <h4 style="color: var(--gold); margin-bottom: 5px;">Скрытые триггеры</h4>
+                            <p style="font-size: 0.9rem; color: #aaa;">Найдем и деактивируем установки, запускающие негативные родовые сценарии.</p>
+                        </div>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon">🌌</div>
+                        <div>
+                            <h4 style="color: var(--gold); margin-bottom: 5px;">Остановка Сансары</h4>
+                            <p style="font-size: 0.9rem; color: #aaa;">Устраним ощущение раздельности с Богом — главный источник всех человеческих страданий.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <h3 style="margin-bottom: 15px; text-align: center;">Запись на сессии</h3>
+                <form id="form-on" onsubmit="submitPremiumLead(event, 'Онлайн')">
+                    <input type="text" placeholder="Имя" required>
+                    <input type="tel" placeholder="Телефон / Telegram" required>
+                    <select required style="color: #fff; background: #111;">
+                        <option value="" disabled selected>Выберите формат</option>
+                        <option value="1 сессия">1 сессия (5 000 ₽)</option>
+                        <option value="Комплекс">Полный комплекс 5 сессий (20 000 ₽)</option>
+                    </select>
+                    <button type="submit" class="btn-glow" style="width: 100%;">
+                        <span class="btn-text">НАЧАТЬ ТРАНСФОРМАЦИЮ</span>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <footer style="background: rgba(0,0,0,0.8); border-top: 1px solid var(--glass-border); padding: 60px 0 30px; margin-top: 50px;">
+        <div class="container" style="display: flex; justify-content: space-between; flex-wrap: wrap; gap: 40px;">
+            <div style="max-width: 400px;">
+                <h3 style="color: var(--gold); font-size: 1.5rem; margin-bottom: 20px;">Сакральные Природные Церемонии</h3>
+                <p style="color: #888; margin-bottom: 20px;">Перуанская медицина, Целительная Баня, Сессии Холотропного дыхания. Путь к вашей Высшей Реализации.</p>
+                <div style="display: flex; gap: 15px;">
+                    <a href="https://t.me/klubkambo" target="_blank" style="color: #fff; text-decoration: none;">Telegram</a>
+                    <a href="https://vk.ru/estestvozemli" target="_blank" style="color: #fff; text-decoration: none;">VK</a>
+                    <a href="https://instagram.com/klubkambo" target="_blank" style="color: #fff; text-decoration: none;">Instagram</a>
+                </div>
+            </div>
+            
+            <div>
+                <h4 style="color: #fff; margin-bottom: 20px;">Навигация</h4>
+                <ul style="list-style: none; line-height: 2; padding: 0; margin: 0;">
+                    <li><a href="#formats" style="color: #888; text-decoration: none;">Форматы участия</a></li>
+                    <li><a href="#reviews" style="color: #888; text-decoration: none;">Истории трансформации</a></li>
+                </ul>
+            </div>
+
+            <div>
+                <h4 style="color: #fff; margin-bottom: 20px;">Документы</h4>
+                <ul style="list-style: none; line-height: 2; padding: 0; margin: 0;">
+                    <li><a href="#" style="color: #888; text-decoration: none;">Политика конфиденциальности</a></li>
+                    <li><a href="#" style="color: #888; text-decoration: none;">Договор оферты</a></li>
+                    <li><a href="#" style="color: #888; text-decoration: none;">Согласие на обработку данных</a></li>
+                </ul>
+            </div>
+        </div>
+        <div style="text-align: center; color: #555; margin-top: 50px; font-size: 0.9rem;">
+            &copy; 2026 Сакральные Природные Церемонии. Все права защищены. Услуги не являются медицинскими.
+        </div>
+    </footer>
+
+    <!-- Плашка Cookies -->
+    <div class="cookie-banner" id="cookieBanner">
+        <p style="margin: 0; color: #ccc; font-size: 0.9rem;">Мы используем файлы cookie для улучшения работы сайта и сбора аналитики. Продолжая использовать сайт, вы соглашаетесь с нашей политикой.</p>
+        <button class="btn-glow" style="padding: 10px 20px; font-size: 0.8rem;" onclick="document.getElementById('cookieBanner').style.display='none'">Принять</button>
+    </div>
+
+    <!-- Библиотеки -->
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <script>
+        // Инициализация частиц
+        particlesJS("particles-js", {
+            "particles": {
+                "number": { "value": 80, "density": { "enable": true, "value_area": 800 } },
+                "color": { "value": "#d4af37" },
+                "shape": { "type": "circle" },
+                "opacity": { "value": 0.5, "random": true, "anim": { "enable": true, "speed": 1, "opacity_min": 0.1, "sync": false } },
+                "size": { "value": 3, "random": true, "anim": { "enable": true, "speed": 2, "size_min": 0.1, "sync": false } },
+                "line_linked": { "enable": true, "distance": 150, "color": "#d4af37", "opacity": 0.2, "width": 1 },
+                "move": { "enable": true, "speed": 1, "direction": "none", "random": true, "straight": false, "out_mode": "out", "bounce": false }
+            },
+            "interactivity": {
+                "detect_on": "canvas",
+                "events": { "onhover": { "enable": true, "mode": "grab" }, "onclick": { "enable": true, "mode": "push" }, "resize": true },
+                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 0.5 } } }
+            },
+            "retina_detect": true
+        });
+
+        // GSAP Анимации
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.to(".gsap-hero", { y: 0, opacity: 1, duration: 1, stagger: 0.2, ease: "power3.out", delay: 0.2 });
+        gsap.from(".gsap-fade", { scrollTrigger: { trigger: ".gsap-fade", start: "top 80%" }, y: 50, opacity: 0, duration: 1, ease: "power3.out" });
+        gsap.from(".gsap-slide-left", { scrollTrigger: { trigger: ".grid-2", start: "top 75%" }, x: -100, opacity: 0, duration: 1, ease: "power3.out" });
+        gsap.from(".gsap-slide-right", { scrollTrigger: { trigger: ".grid-2", start: "top 75%" }, x: 100, opacity: 0, duration: 1, ease: "power3.out", delay: 0.2 });
+
+        // Управление модалками
+        function openModal(id) {
+            document.getElementById(id).classList.add('active');
+            document.body.style.overflow = 'hidden';
+            
+            // Сброс состояний формы при открытии
+            let type = id === 'modal-offline' ? 'off' : 'on';
+            document.getElementById('form-content-' + type).style.display = 'block';
+            document.getElementById('success-' + type).classList.remove('active');
+            document.getElementById('success-' + type).style.display = 'none';
+        }
+
+        function closeModal(id) {
+            document.getElementById(id).classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        document.querySelectorAll('.modal').forEach(modal => {
+            modal.addEventListener('click', function(e) {
+                if(e.target === this) closeModal(this.id);
+            });
+        });
+
+        // Выбор города
+        function selectCity(element, cityName) {
+            document.querySelectorAll('.city-card').forEach(card => card.classList.remove('selected'));
+            element.classList.add('selected');
+            document.getElementById('selected_city_input').value = cityName;
+        }
+
+        // Премиальная отправка с конфетти (Исправленная)
+        function submitPremiumLead(event, type) {
+            event.preventDefault();
+            
+            let cityInput = document.getElementById('selected_city_input');
+            if (type === 'Офлайн' && (!cityInput || !cityInput.value)) {
+                alert('Пожалуйста, выберите город, кликнув на карточку.');
+                return;
+            }
+
+            const form = event.target;
+            const btn = form.querySelector('button');
+            const originalText = btn.querySelector('.btn-text').innerText;
+            btn.querySelector('.btn-text').innerText = 'ОТПРАВКА...';
+            btn.style.pointerEvents = 'none';
+
+            setTimeout(() => {
+                // Скрываем форму
+                let formWrapperId = type === 'Офлайн' ? 'form-content-off' : 'form-content-on';
+                document.getElementById(formWrapperId).style.display = 'none';
+                
+                // Показываем плашку успеха
+                let successOverlayId = type === 'Офлайн' ? 'success-off' : 'success-on';
+                const successOverlay = document.getElementById(successOverlayId);
+                if (successOverlay) {
+                    successOverlay.style.display = 'flex';
+                    successOverlay.classList.add('active');
+                }
+
+                // Резкий и долгий залп конфетти с максимальным z-index
+                var duration = 2500;
+                var end = Date.now() + duration;
+                (function frame() {
+                    confetti({ particleCount: 7, angle: 60, spread: 55, origin: { x: 0 }, colors: ['#d4af37', '#ffffff'], zIndex: 99999 });
+                    confetti({ particleCount: 7, angle: 120, spread: 55, origin: { x: 1 }, colors: ['#d4af37', '#ffffff'], zIndex: 99999 });
+                    if (Date.now() < end) requestAnimationFrame(frame);
+                }());
+
+                // Сброс формы для следующих открытий
+                form.reset();
+                if(type === 'Офлайн') {
+                    document.querySelectorAll('.city-card').forEach(c => c.classList.remove('selected'));
+                    document.getElementById('selected_city_input').value = '';
+                }
+                btn.querySelector('.btn-text').innerText = originalText;
+                btn.style.pointerEvents = 'all';
+
+            }, 800);
+        }
+    </script>
+</body>
+</html>
